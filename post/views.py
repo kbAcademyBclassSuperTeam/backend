@@ -21,24 +21,14 @@ def home(request):
 
 def model_predict(texts):
 
-    # currentPath = os.getcwd()
-    # print(currentPath)
-    # transformer_path = os.chdir(currentPath + "\\corpus_transformer.pkl")
-    # model_path = os.chdir(currentPath + "\\corpus.pkl")
 
-    # ------------
-        
-    # transformer = joblib.load('corpus_transformer.pkl') 
+    transformer = joblib.load('C:\\git_reposit\\backend\\post\\model_folder\\corpus_transformer.pkl')
+    model = joblib.load('C:\\git_reposit\\backend\\post\\model_folder\\corpus.pkl')
+    ex = transformer.transform({texts})
+    y_pred = model.predict(ex)
 
-    # model = joblib.load('corpus.pkl')
-
-
-    # ex = transformer.transform({texts})
-    # y_pred = model.predict(ex)
-
-    # return y_pred[0]
+    return y_pred[0]
     
-    return '하이'
     
 
 def search_table(request):
@@ -46,7 +36,7 @@ def search_table(request):
 
     
 
-    context = {'search_key': model_predict(search_key)} 
+    context = {'search_key': str(model_predict(search_key))} 
 
     return JsonResponse(context)
     # return render(request,'home.html',context)
