@@ -1,4 +1,4 @@
-"""backend URL Configuration
+"""myproject URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.0/topics/http/urls/
@@ -14,11 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from post import views
+# from django.conf.urls import url
+from django.urls import re_path
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('myapp.urls'))
-    # app의 url로 연결을 하기 위한 path
+    path('', views.home, name='home'),
+    path('search/', views.search_table, name="search_table"),
+    # re_path(r'^table/search/$', views.search_table, name="search_table"),
+
+
 ]
