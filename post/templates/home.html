@@ -86,14 +86,14 @@ recognition.onresult = function(e) {
     $('.change').text(texts);
 
     
-    promise_search(texts).then(
-        (target) => {
+    promise_search(texts)
+        .then((target) => {
             console.log(target)
-        },
-        (error) => {
+        })
+        .catch((error) => {
             console.log(error)
-        }
-    )
+        })
+    
 
     
 };
