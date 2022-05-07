@@ -7,7 +7,7 @@
     <title>Home!</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
    
-    
+   
 </head>
 <body>
     {% for post in posts %}
@@ -17,15 +17,36 @@
     {% endfor %}
 
 <div class="words" contenteditable>
-    <!-- <h1 id="text_box"></h1> -->
     <p class="change"></p>
 </div>
+
+<script>
+    function search(texts) {
+        let search_key = texts
+        let search_var = ''
+        $.ajax({ 
+            type: "GET", 
+            url:'search/', 
+            data : { 'search_key':search_key}, 
+            dataType: 'json',
+            async:false,
+            success:function(data){ 
+                search_var = data['search_key']
+            } ,
+            error: function (error) {
+               // console.log(error);
+               search_var = '0'
+           }
+        }) 	
+        return search_var
+    }
+</script>
 
 <script>
 window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 let recognition = new SpeechRecognition();
-recognition.interimResults = true;
+recognition.interimResults = false;
 recognition.lang = 'ko-KR';
 
 let makeNewTextContent = function() {
@@ -47,81 +68,12 @@ recognition.onresult = function(e) {
     let texts = Array.from(e.results)
             .map(results => results[0].transcript).join("");
 
-    texts.replace(/느낌표|강조|뿅/gi, '❗️');
-
-    // $.ajax({
-    //     type: "POST",
-    //     url: "~/text_classification.py",
-    //     data: { param: texts}
-    // }).done(function( o ) {
-    //     console
-    // });
-    
-    
     $('.change').text(texts);
-    // 'text_box'.textContent = texts;
 
-    $.ajax({ 
-        type: "GET", 
-        url:'search/', 
-        data : { 'search_key':texts}, 
-        dataType: 'json',
-        success:function(data){ 
-            console.log(data['search_key'])
-        } ,
-        error: function (error) {
-           console.log(error);
-       }
-    }) 	
-
-
-    {% comment %} $.ajax({ 
-            
-        url:'search/', 
-        data : { 'search_key':search_key}, 
-        dataType: "json", 
-        type: "GET",   
-        async: false, 
-    }) 	
-    .done(function(json){
-        $('.change').text(texts);
-    }) {% endcomment %}
-
-
-    {% comment %} console.log(search(texts)) {% endcomment %}
-
-    {% comment %} var search_key = $('.change').text()  {% endcomment %}
-    // alert(search_key)
+    console.log(search(texts))
     
-    
-
-   
-
-
-
-
 };
 </script>
-<script>
-
-    function search(texts) {
-        var search_key = texts
-        var search_var
-        $.ajax({ 
-            
-            url:'search/', 
-            data : { 'search_key':search_key}, 
-            dataType: "json", 
-            type: "GET",   
-            async: false, 
-        }) 	
-        .done(function(json){
-
-        })
-        return search_var
-    }
-</script>
-
 
 
 <style>
