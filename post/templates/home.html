@@ -7,55 +7,53 @@
     <title>Home!</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
    
+    <script>
+        function search(texts) {
+            let search_key = texts
+            let search_var = ''
+            $.ajax({ 
+                type: "GET", 
+                url:'search/', 
+                data : { 'search_key':search_key}, 
+                dataType: 'json',
+                async:false,
+                success:function(data){ 
+                    search_var = data['search_key']
+                } ,
+                error: function (error) {
+                   // console.log(error);
+                   search_var = '0'
+               }
+            }) 	
+            return search_var
+        }
+    
+        function promise_search(texts){
+            return new Promise((resolve, reject) => {
+    
+                let target = search(texts)
+                // 0.4초 안에 통신이 안되면, 에러 발생( promise 객체 이용 )
+                setTimeout(() => {
+                    if (target != undefined){
+                        resolve(target)
+                    } else {
+                        reject('서버에 문제가 발생하여 인식하지 못했습니다.\n 다시 시도해주세요.')
+                    }
+                }, 400)
+            })
+        }
+    </script>
    
 </head>
 <body>
-    {% for post in posts %}
-        {{ post.title }}
-        {{ post.content }}
-        <br>
-    {% endfor %}
+
+<button id="stop">버튼</button>
 
 <div class="words" contenteditable>
     <p class="change"></p>
 </div>
 
-<script>
-    function search(texts) {
-        let search_key = texts
-        let search_var = ''
-        $.ajax({ 
-            type: "GET", 
-            url:'search/', 
-            data : { 'search_key':search_key}, 
-            dataType: 'json',
-            async:false,
-            success:function(data){ 
-                search_var = data['search_key']
-            } ,
-            error: function (error) {
-               // console.log(error);
-               search_var = '0'
-           }
-        }) 	
-        return search_var
-    }
 
-    function promise_search(texts){
-        return new Promise((resolve, reject) => {
-
-            let target = search(texts)
-            // 0.4초 안에 통신이 안되면, 에러 발생( promise 객체 이용 )
-            setTimeout(() => {
-                if (target != undefined){
-                    resolve(target)
-                } else {
-                    reject('서버에 문제가 발생하여 인식하지 못했습니다.\n 다시 시도해주세요.')
-                }
-            }, 400)
-        })
-    }
-</script>
 
 <script>
 window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -76,15 +74,32 @@ recognition.onstart = function() {
     makeNewTextContent(); // 음성 인식 시작시마다 새로운 문단을 추가한다.
 };
 recognition.onend = function() {
-    recognition.start();
+    {% comment %} recognition.onresult = function(e) {
+        let texts = Array.from(e.results)
+                .map(results => results[0].transcript).join("");
+    
+        $('.change').text(texts);
+        
+        promise_search(texts)
+            .then((target) => {
+                console.log(target)
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }; {% endcomment %}
+    recognition.stop();
 };
 
-recognition.onresult = function(e) {
+document.querySelector("#stop").onclick = () => {
+    recognition.start();
+  };
+
+  recognition.onresult = function(e) {
     let texts = Array.from(e.results)
             .map(results => results[0].transcript).join("");
 
     $('.change').text(texts);
-
     
     promise_search(texts)
         .then((target) => {
@@ -93,10 +108,7 @@ recognition.onresult = function(e) {
         .catch((error) => {
             console.log(error)
         })
-    
-
-    
-};
+}; 
 </script>
 
 
