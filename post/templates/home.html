@@ -8,6 +8,7 @@
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdn.WebRTC-Experiment.com/RecordRTC.js";></script> 
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         html, body { 
             margin: 0 !important; 
@@ -16,40 +17,16 @@
             width: 100%; 
         } 
     </style>
-    <script>
-        $.ajaxSetup({
-          headers: { "X-CSRFToken": '{{csrf_token}}' }
-        });
-      </script>
-    
-    <script>
-        {% comment %} function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    
-        
-        var csrftoken = getCookie('csrftoken'); {% endcomment %}
 
-        
-        
+    <script>
+
         function blob_model(formData){
+            console.log(String(formData))
             let blob_value = ''
             $.ajax({ 
                 type: "GET", 
                 url:'blob/', 
-                data : {'blob_url': formData}, 
+                data : {'blob_url': String(formData)}, 
                 dataType:"json",
                 success:function(data){ 
                     blob_value = data['blob_url']
@@ -75,7 +52,7 @@
                     }
                 }, 400)
             })
-        } 
+        }
 
         function search(texts) {
             let search_key = texts
@@ -115,7 +92,7 @@
    
 </head>
 <body>
-    <input type="hidden" name="csrfmiddlewaretoken" value="YrBQxfk6cyAlKqAigDhXJkHaMiwaqvnDktDq2lqP4b1vUcKjdo8tXoKrjBlnt5NG">
+
 <button id="stop">버튼</button>
 <button id="btn-start-recording">Start Recording</button> 
 <button id="btn-stop-recording" disabled>Stop Recording</button> 
@@ -134,6 +111,11 @@
 
 
 <script>
+
+axios.defaults.xsrfCookieName = 'csrftoken'
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'
+
+
 window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 let recognition = new SpeechRecognition();
@@ -160,7 +142,7 @@ recognition.onstart = function() {
     captureMicrophone(function (microphone) { 
         var binaryData = [];
         binaryData.push(microphone);
-        window.URL.createObjectURL(new Blob(binaryData,{type: "application/zip"}))
+        window.URL.createObjectURL(new Blob(binaryData, {type: "audio.wav"}))
         audio.play(); 
         recorder = RecordRTC(microphone, { 
             type: 'audio', 
@@ -215,17 +197,31 @@ function stopRecordingCallback() {
     var blob = recorder.getBlob(); 
     audio.src = URL.createObjectURL(blob); 
     audio.play(); 
-    recorder.microphone.stop(); 
-    console.log(blob)
+    recorder.microphone.stop();
 
+    blobToDataURL(blob, function (dataurl) {
+        const data = {
+            'url': dataurl
+        }
+        axios({
+            method: 'post',
+            url: 'http://127.0.0.1:8000/createSound',
+            data: data,
+            headers: {
+                "Content-Type": 'application/json',
+            },
+            csrfmiddlewaretoken: '{{ csrf_token }}' 
+        })
+    })
 
     createAudioElement(window.URL.createObjectURL(blob)); 
-} 
+}
 
-
-
-
-
+function blobToDataURL(blob, callback) {
+    var a = new FileReader();
+    a.onload = function(e) {callback(e.target.result);}
+    a.readAsDataURL(blob);
+}
 
 function createAudioElement(blobUrl) { 
     const downloadEl = document.createElement('a'); 
@@ -241,33 +237,6 @@ function createAudioElement(blobUrl) {
     audioEl.appendChild(sourceEl); 
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
-    
-    console.log(blobUrl)
-
-    {% comment %} var fd = new FormData();
-
-    /*
-    
-    */
-
-    fd.append('fname', 'audio.wav');
-    fd.append('data', blobUrl);
-    console.log(fd)
-
-    
-    $.ajax({
-        type: 'POST',
-        url: 'blob/',
-        data: fd,
-        processData: false,
-        contentType: false,
-        success:function(data){ 
-            console.log(data)
-        } ,
-        error: function (error) {
-            console.log(error);
-        }
-    }) {% endcomment %}
 
     promise_blob(blobUrl)
     .then((target) => {
@@ -275,7 +244,7 @@ function createAudioElement(blobUrl) {
     })
     .catch((error) => {
         console.log(error)
-    }) 
+    })
 } 
 
 
@@ -325,3 +294,4 @@ function createAudioElement(blobUrl) {
 </style>
 </body>
 </html>
+
