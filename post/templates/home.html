@@ -5,9 +5,54 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home!</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-   
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdn.WebRTC-Experiment.com/RecordRTC.js";></script> 
+    <style>
+        html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            overflow: hidden !important; 
+            width: 100%; 
+        } 
+    </style>
+
     <script>
+
+        function blob_model(formData){
+            console.log(String(formData))
+            let blob_value = ''
+            $.ajax({ 
+                type: "GET", 
+                url:'blob/', 
+                data : {'blob_url': String(formData)}, 
+                dataType:"json",
+                success:function(data){ 
+                    blob_value = data['blob_url']
+                    console.log(blob_value)
+                } ,
+                error: function (error) {
+                   console.log(error);
+                   blob_value = '0'
+               }
+            }) 	
+            return blob_value
+        }
+        function promise_blob(formData){
+            return new Promise((resolve, reject) => {
+    
+                let target = blob_model(formData)
+                // 0.4초 안에 통신이 안되면, 에러 발생( promise 객체 이용 )
+                setTimeout(() => {
+                    if (target != undefined){
+                        resolve(target)
+                    } else {
+                        reject('서버에 문제가 발생하여 인식하지 못했습니다.\n 다시 시도해주세요.')
+                    }
+                }, 400)
+            })
+        }
+
         function search(texts) {
             let search_key = texts
             let search_var = ''
@@ -43,15 +88,7 @@
             })
         }
     </script>
-    <style>
-        html, body { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            overflow: hidden !important; 
-            width: 100%; 
-        } 
-    </style>
-
+   
 </head>
 <body>
 
@@ -63,7 +100,7 @@
 <audio controls autoplay></audio>
 
 <!-- CDN -->
-<script src="https://cdn.WebRTC-Experiment.com/RecordRTC.js";></script> 
+
 
 
 <div class="words" contenteditable>
@@ -79,32 +116,46 @@ let recognition = new SpeechRecognition();
 recognition.interimResults = false;
 recognition.lang = 'ko-KR';
 
-let makeNewTextContent = function() {
-    p = document.createElement('p');
-    document.querySelector('.words').appendChild(p);
-};
+
 
 let p = null;
 
+var recorder; // globally accessible 
+{% comment %} document.getElementById('btn-start-recording').onclick = function () { 
+    
+document.getElementById('btn-stop-recording').onclick = function () { 
+    
+};  {% endcomment %}
+
+
+
 recognition.start();
 recognition.onstart = function() {
-    makeNewTextContent(); // 음성 인식 시작시마다 새로운 문단을 추가한다.
-};
+
+    this.disabled = true; 
+    captureMicrophone(function (microphone) { 
+        var binaryData = [];
+        binaryData.push(microphone);
+        window.URL.createObjectURL(new Blob(binaryData, {type: "audio.wav"}))
+        audio.play(); 
+        recorder = RecordRTC(microphone, { 
+            type: 'audio', 
+            recorderType: StereoAudioRecorder, 
+            numberOfAudioChannels: 1, // or leftChannel:true 
+            desiredSampRate: 16000 
+        }); 
+        recorder.startRecording(); 
+        // release microphone on stopRecording
+        recorder.microphone = microphone; 
+        document.getElementById('btn-stop-recording').disabled = false; 
+        }); 
+}; 
+
 recognition.onend = function() {
-    {% comment %} recognition.onresult = function(e) {
-        let texts = Array.from(e.results)
-                .map(results => results[0].transcript).join("");
-    
-        $('.change').text(texts);
-        
-        promise_search(texts)
-            .then((target) => {
-                console.log(target)
-            })
-            .catch((error) => {
-                console.log(error)
-            })
-    }; {% endcomment %}
+    this.disabled = true; 
+    recorder.stopRecording(stopRecordingCallback); 
+    document.getElementById('btn-start-recording').disabled = false; 
+
     recognition.stop();
 };
 
@@ -141,35 +192,13 @@ function stopRecordingCallback() {
     audio.src = URL.createObjectURL(blob); 
     audio.play(); 
     recorder.microphone.stop(); 
+    console.log(blob)
 
 
     createAudioElement(window.URL.createObjectURL(blob)); 
 } 
 
 
-var recorder; // globally accessible 
-document.getElementById('btn-start-recording').onclick = function () { 
-    this.disabled = true; 
-    captureMicrophone(function (microphone) { 
-        //audio.src = URL.createObjectURL(microphone); 
-        audio.play(); 
-        recorder = RecordRTC(microphone, { 
-            type: 'audio', 
-            recorderType: StereoAudioRecorder, 
-            numberOfAudioChannels: 1, // or leftChannel:true 
-            desiredSampRate: 16000 
-        }); 
-        recorder.startRecording(); 
-        // release microphone on stopRecording
-        recorder.microphone = microphone; 
-        document.getElementById('btn-stop-recording').disabled = false; 
-        }); 
-    }; 
-    document.getElementById('btn-stop-recording').onclick = function () { 
-    this.disabled = true; 
-    recorder.stopRecording(stopRecordingCallback); 
-    document.getElementById('btn-start-recording').disabled = false; 
-}; 
 
 
 
@@ -188,6 +217,14 @@ function createAudioElement(blobUrl) {
     audioEl.appendChild(sourceEl); 
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
+
+    promise_blob(blobUrl)
+    .then((target) => {
+        console.log(target)
+    })
+    .catch((error) => {
+        console.log(error)
+    })
 } 
 
 
