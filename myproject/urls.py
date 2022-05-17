@@ -24,7 +24,6 @@ from django.urls import re_path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('search/', views.search_table, name="search_table"),
     # re_path(r'^table/search/$', views.search_table, name="search_table"),
 
 

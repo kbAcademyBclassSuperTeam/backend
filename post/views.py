@@ -26,3 +26,10 @@ def search_table(request):
 
     return JsonResponse(context)
     # return render(request,'home.html',context)
+
+def blob_table(request):
+    blob_key = request.GET.get('blob_key')
+    # context = {'blob_key' : '감사'}
+    
+    # return JsonResponse(context)
+    return blob_key
