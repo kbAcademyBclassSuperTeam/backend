@@ -42,7 +42,7 @@ def createSound(request):
     url = json.loads(data).get('url')
 
     binary_data = decode_base64_url(url)
-    with open('./test.wav', 'wb') as f:
+    with open(settings.MEDIA_ROOT + '/test.wav', 'wb') as f:
         f.write(binary_data)
         f.close()
     
