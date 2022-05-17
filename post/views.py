@@ -1,6 +1,6 @@
 from django.http import JsonResponse
-from django.shortcuts import render
-from .models import Post
+from django.shortcuts import redirect, render
+from .models import Post, Audio
 import joblib
 
 def post(request):
@@ -31,4 +31,15 @@ def blob_table(request):
     blob_key = request.GET.get('blob_url')
     context = {'blob_url' : blob_key}
     
+    
+    
     return JsonResponse(context)
+
+def save_audio(request):
+    
+    if request.FILES.get('audio'):
+        audio = Audio()
+        audio.audio = request.FILES.get('audio')
+        audio.save()
+    
+    return redirect('http://127.0.0.1:8000/')
