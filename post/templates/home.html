@@ -19,56 +19,17 @@
 
     <script>
 
-        {% comment %} function blob_model(formData){
-            let blob_value = ''
-            $.ajax({ 
-                type: "GET", 
-                url:'blob/', 
-                // data : { 'blob_key': [blob_key]}, 
-                // data : {'blob_key': formData}, 
-                data : formData, 
-                //data : formData, 
-                // data : blob_key, 
-                //dataType: 'JSON.stringify(json)',
-                contentType: "application/json; charset=utf-8",
-                //dataType:"json",
-                dataType:"binary",
-                processData: false,
-                //contentType: false,
-                async:false,
-                success:function(data){ 
-                    // blob_value = data['blob_key']
-                    blob_value = data
-                } ,
-                error: function (error) {
-                   console.log(error);
-                   blob_value = '0'
-               }
-            }) 	
-            return blob_value
-        } {% endcomment %}
-
         function blob_model(formData){
-            console.log(formData)
+            console.log(String(formData))
             let blob_value = ''
             $.ajax({ 
                 type: "GET", 
                 url:'blob/', 
-                // data : { 'blob_key': [blob_key]}, 
-                // data : {'blob_key': formData}, 
-                data : {'blob_url': formData}, 
-                //data : formData, 
-                // data : blob_key, 
-                //dataType: 'JSON.stringify(json)',
-                //contentType: "application/json; charset=utf-8",
+                data : {'blob_url': String(formData)}, 
                 dataType:"json",
-                //dataType:"binary",
-                processData: false,
-                //contentType: false,
-                async:false,
                 success:function(data){ 
-                    // blob_value = data['blob_key']
-                    blob_value = data
+                    blob_value = data['blob_url']
+                    console.log(blob_value)
                 } ,
                 error: function (error) {
                    console.log(error);
@@ -175,7 +136,7 @@ recognition.onstart = function() {
     captureMicrophone(function (microphone) { 
         var binaryData = [];
         binaryData.push(microphone);
-        window.URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
+        window.URL.createObjectURL(new Blob(binaryData, {type: "audio.wav"}))
         audio.play(); 
         recorder = RecordRTC(microphone, { 
             type: 'audio', 
@@ -233,18 +194,6 @@ function stopRecordingCallback() {
     recorder.microphone.stop(); 
     console.log(blob)
 
-    console.log("-------")
-
-    // var formData = new FormData()
-    // formData.append('key',blob)
-
-    
-    
-    // console.log(window.URL.createObjectURL(blob))
-    
-
-
-
 
     createAudioElement(window.URL.createObjectURL(blob)); 
 } 
@@ -255,7 +204,6 @@ function stopRecordingCallback() {
 
 
 function createAudioElement(blobUrl) { 
-    console.log(blobUrl)
     const downloadEl = document.createElement('a'); 
     downloadEl.style = 'display: block'; 
     downloadEl.innerHTML = 'download'; 
@@ -269,7 +217,6 @@ function createAudioElement(blobUrl) {
     audioEl.appendChild(sourceEl); 
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
-    console.log(blobUrl)
 
     promise_blob(blobUrl)
     .then((target) => {

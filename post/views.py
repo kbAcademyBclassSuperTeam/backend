@@ -3,7 +3,7 @@ from django.shortcuts import render
 from .models import Post
 import joblib
 
-def home(request):
+def post(request):
     posts = Post.objects.all()
     data = {
         'posts': posts,
@@ -28,8 +28,7 @@ def search_table(request):
     # return render(request,'home.html',context)
 
 def blob_table(request):
-    blob_key = request.GET.get('blob_key')
-    # context = {'blob_key' : '감사'}
+    blob_key = request.GET.get('blob_url')
+    context = {'blob_url' : blob_key}
     
-    # return JsonResponse(context)
-    return blob_key
+    return JsonResponse(context)
