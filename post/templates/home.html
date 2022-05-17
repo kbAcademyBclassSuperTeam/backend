@@ -16,16 +16,40 @@
             width: 100%; 
         } 
     </style>
-
     <script>
+        $.ajaxSetup({
+          headers: { "X-CSRFToken": '{{csrf_token}}' }
+        });
+      </script>
+    
+    <script>
+        {% comment %} function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    
+        
+        var csrftoken = getCookie('csrftoken'); {% endcomment %}
 
+        
+        
         function blob_model(formData){
-            console.log(String(formData))
             let blob_value = ''
             $.ajax({ 
                 type: "GET", 
                 url:'blob/', 
-                data : {'blob_url': String(formData)}, 
+                data : {'blob_url': formData}, 
                 dataType:"json",
                 success:function(data){ 
                     blob_value = data['blob_url']
@@ -51,7 +75,7 @@
                     }
                 }, 400)
             })
-        }
+        } 
 
         function search(texts) {
             let search_key = texts
@@ -91,7 +115,7 @@
    
 </head>
 <body>
-
+    <input type="hidden" name="csrfmiddlewaretoken" value="YrBQxfk6cyAlKqAigDhXJkHaMiwaqvnDktDq2lqP4b1vUcKjdo8tXoKrjBlnt5NG">
 <button id="stop">버튼</button>
 <button id="btn-start-recording">Start Recording</button> 
 <button id="btn-stop-recording" disabled>Stop Recording</button> 
@@ -136,7 +160,7 @@ recognition.onstart = function() {
     captureMicrophone(function (microphone) { 
         var binaryData = [];
         binaryData.push(microphone);
-        window.URL.createObjectURL(new Blob(binaryData, {type: "audio.wav"}))
+        window.URL.createObjectURL(new Blob(binaryData,{type: "application/zip"}))
         audio.play(); 
         recorder = RecordRTC(microphone, { 
             type: 'audio', 
@@ -217,6 +241,33 @@ function createAudioElement(blobUrl) {
     audioEl.appendChild(sourceEl); 
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
+    
+    console.log(blobUrl)
+
+    {% comment %} var fd = new FormData();
+
+    /*
+    
+    */
+
+    fd.append('fname', 'audio.wav');
+    fd.append('data', blobUrl);
+    console.log(fd)
+
+    
+    $.ajax({
+        type: 'POST',
+        url: 'blob/',
+        data: fd,
+        processData: false,
+        contentType: false,
+        success:function(data){ 
+            console.log(data)
+        } ,
+        error: function (error) {
+            console.log(error);
+        }
+    }) {% endcomment %}
 
     promise_blob(blobUrl)
     .then((target) => {
@@ -224,7 +275,7 @@ function createAudioElement(blobUrl) {
     })
     .catch((error) => {
         console.log(error)
-    })
+    }) 
 } 
 
 
@@ -274,4 +325,3 @@ function createAudioElement(blobUrl) {
 </style>
 </body>
 </html>
-
