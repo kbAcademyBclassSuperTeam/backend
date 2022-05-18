@@ -240,13 +240,13 @@ function createAudioElement(blobUrl) {
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
 
-    promise_blob(blobUrl)
+    {% comment %} promise_blob(blobUrl)
     .then((target) => {
         console.log(target)
     })
     .catch((error) => {
         console.log(error)
-    })
+    }) {% endcomment %}
 } 
 
 
