@@ -6,6 +6,11 @@ import joblib
 import json
 from binascii import a2b_base64
 import base64
+import pandas as pd
+import tensorflow as tf
+import librosa
+import numpy as np
+import itertools
 
 
 def post(request):
@@ -36,6 +41,91 @@ def blob_table(request):
     
     return JsonResponse(context)
 
+
+
+def scam_model():
+    model = tf.keras.models.load_model('post\model_folder\CNN_second_model2.h5')
+    path = './test.wav'
+    y, sr = librosa.load(path)
+    
+    n_fft = int(np.ceil(0.025 * sr))
+    win_length = int(np.ceil(0.025 * sr))
+    hop_length = int(np.ceil(0.01 * sr))
+
+    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=40, win_length=win_length, hop_length=hop_length, n_fft=n_fft)
+    
+    print(S.shape)
+    
+    max_num = 14960
+    arr_re = []
+    
+    arr_df = [ list(itertools.chain(*S)) ]
+    arr_len = len(arr_df[0])
+    avg = sum(arr_df[0]) / arr_len
+    
+    if arr_len > max_num:
+        pred_now = 0
+        idx = arr_len//max_num
+        for i in range(idx):
+            arr_re = []
+            for j in range(i*max_num,(i+1)*max_num):
+                arr_re.append(arr_df[0][j])
+
+            padded_np = np.array(arr_re)
+
+            b = padded_np.reshape(1, 40, 374)
+
+            re_np = np.expand_dims(b, -1)
+
+            pred = model.predict(re_np)
+            print(pred)
+            pred_now += pred
+
+        if arr_len % max_num != 0:
+            arr_re = []
+            for i in range(arr_len - arr_len + idx * max_num, arr_len):
+                arr_re.append(arr_df[0][i])
+            for i in range(max_num- arr_len % max_num):
+                    arr_re.append(avg)
+            padded_np = np.array(arr_re)
+
+            b = padded_np.reshape(1, 40, 374)
+
+            re_np = np.expand_dims(b, -1)
+
+            pred = model.predict(re_np)
+            print(pred)
+            pred_now += pred
+
+        print(pred_now)
+        if pred_now > 0.1:
+            print(1)
+        else:
+            print(0)
+    else:
+        for i in range(arr_len):
+            arr_re.append(arr_df[0][i])
+        for i in range(max_num-arr_len):
+            arr_re.append(avg)
+
+        padded_np = np.array(arr_re)
+
+        b = padded_np.reshape(1, 40, 374)
+
+        re_np = np.expand_dims(b, -1)
+
+        pred = model.predict(re_np)
+        print(pred)
+        if np.round(pred)[0][0] > 0.1:
+            print(1)
+        else:
+            print(0)
+        
+        
+    
+    
+    
+
 def createSound(request):
 
     data = request.body
@@ -45,6 +135,10 @@ def createSound(request):
     with open('./test.wav', 'wb') as f:
         f.write(binary_data)
         f.close()
+    scam_model()
+    
+    
+    
     
     return redirect('http://127.0.0.1:8000')
 
