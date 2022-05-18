@@ -210,7 +210,9 @@ function stopRecordingCallback() {
             headers: {
                 "Content-Type": 'application/json',
             },
-            csrfmiddlewaretoken: '{{ csrf_token }}' 
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        }).then(function(response){
+            console.log(response.data)
         })
     })
 
@@ -224,7 +226,7 @@ function blobToDataURL(blob, callback) {
 }
 
 function createAudioElement(blobUrl) { 
-    const downloadEl = document.createElement('a'); 
+    const downloadEl = document.creqateElement('a'); 
     downloadEl.style = 'display: block'; 
     downloadEl.innerHTML = 'download'; 
     downloadEl.download = 'audio.wav'; 
@@ -238,13 +240,13 @@ function createAudioElement(blobUrl) {
     document.body.appendChild(audioEl); 
     document.body.appendChild(downloadEl); 
 
-    promise_blob(blobUrl)
+    {% comment %} promise_blob(blobUrl)
     .then((target) => {
         console.log(target)
     })
     .catch((error) => {
         console.log(error)
-    })
+    }) {% endcomment %}
 } 
 
 

@@ -33,8 +33,7 @@ def search_table(request):
     context = {'search_key': str(model_predict(search_key))} 
 
     return JsonResponse(context)
-    # return render(request,'home.html',context)
-
+    
 def blob_table(request):
     blob_key = request.GET.get('blob_url')
     context = {'blob_url' : blob_key}
@@ -63,8 +62,8 @@ def scam_model():
     arr_len = len(arr_df[0])
     avg = sum(arr_df[0]) / arr_len
     
+    pred_now = 0
     if arr_len > max_num:
-        pred_now = 0
         idx = arr_len//max_num
         for i in range(idx):
             arr_re = []
@@ -115,11 +114,15 @@ def scam_model():
         re_np = np.expand_dims(b, -1)
 
         pred = model.predict(re_np)
-        print(pred)
+        print(pred[0])
+        pred_now = pred
         if np.round(pred)[0][0] > 0.1:
             print(1)
         else:
             print(0)
+        
+    
+    return pred_now[0]
         
         
     
@@ -135,12 +138,19 @@ def createSound(request):
     with open(settings.MEDIA_ROOT + '/test.wav', 'wb') as f:
         f.write(binary_data)
         f.close()
-    scam_model()
+        
+    scam_score = scam_model()
+    print(scam_score[0])
+    datas = {
+        'scam': scam_score[0].tolist(),
+    }
+    return JsonResponse(datas)
     
     
     
     
-    return redirect('http://127.0.0.1:8000')
+    
+    # return redirect('http://127.0.0.1:8000')
 
 def decode_base64_url(url):
     assert url.startswith('data:audio/')
